@@ -1,0 +1,7 @@
+main
+main.o
+sgemm.qhex
+sgemm.qbin
+sgemm.qasm2
+
+.*.swp
