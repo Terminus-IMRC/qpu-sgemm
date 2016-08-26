@@ -12,6 +12,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+#include <omp.h>
 #include <vc4vec.h>
 
 const unsigned code[] = {
@@ -137,10 +138,13 @@ static float mf_maximum_relative_error(float *C1, float *C2, const int P, const 
 
 static void mf_sgemm(float *A, float *B, float *C, const int P, const int Q, const int R, const float ALPHA, const float BETA)
 {
-	int i, j, k;
+	int i;
 
+#pragma omp parallel for
 	for (i = 0; i < P; i ++) {
+		int j;
 		for (j = 0; j < R; j ++) {
+			int k;
 			float sum = 0.0;
 			for (k = 0; k < Q; k ++) {
 				sum += A[i * Q + k] * B[k * R + j];

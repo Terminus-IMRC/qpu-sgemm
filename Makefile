@@ -1,6 +1,7 @@
 all:
 
-CFLAGS += -Wno-unused-function -Wall -Wextra -pipe -O2 -g
+CFLAGS += -fopenmp -Wno-unused-function -Wall -Wextra -pipe -O2 -g
+LDFLAGS += -fopenmp
 
 QBIN2HEX := qbin2hex
 QASM2 := qasm2
