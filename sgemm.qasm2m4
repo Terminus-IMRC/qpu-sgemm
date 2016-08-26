@@ -209,13 +209,13 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 
 		:loop-k ; (Q - 1) to 0
 
-			; uniforms_address = B_CUR_RA
-			alu cond_add=al op_add=or waddr_add=uniforms_address raddr_a=B_CUR_RA add_a=ra add_b=ra
-
 			; tmu0s = A_CUR_RA
 			alu cond_add=al op_add=or waddr_add=tmu0s raddr_a=A_CUR_RA add_a=ra add_b=ra
-			; r4 = tmu0
-			alu sig=ldtmu0
+			; uniforms_address = B_CUR_RA
+			;  and r4 = tmu0
+			alu sig=ldtmu0 cond_add=al op_add=or waddr_add=uniforms_address raddr_a=B_CUR_RA add_a=ra add_b=ra
+			alu
+			alu
 
 			alu             cond_mul=al                        waddr_mul=TMP0_R             op_mul=fmul                      raddr_b=uniform_read                       mul_a=r4 mul_b=rb
 			alu cond_add=al cond_mul=al waddr_add=RESULT_0_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_0_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
