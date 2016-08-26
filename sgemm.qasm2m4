@@ -216,11 +216,9 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 			alu cond_add=al cond_mul=al op_add=add op_mul=v8min waddr_add=A_CUR_RA waddr_mul=tmu0s raddr_a=A_CUR_RA raddr_b=A_STRIDE_K_RB add_a=ra add_b=rb mul_a=ra mul_b=ra
 
 			; uniforms_address = B_CUR_RA
+			;  and r5 = B_STRIDE_K_RB
 			; Note: Because it seems that uniforms_address is not on reg B, we cannot update B_CUR_RA here.
-			alu cond_add=al op_add=or waddr_add=uniforms_address raddr_a=B_CUR_RA add_a=ra add_b=ra
-
-			; B_CUR_RA += B_STRIDE_K_RB
-			alu cond_add=al op_add=add waddr_add=B_CUR_RA raddr_a=B_CUR_RA raddr_b=B_STRIDE_K_RB add_a=ra add_b=rb
+			alu cond_add=al cond_mul=al op_add=or op_mul=v8min waddr_add=uniforms_address waddr_mul=r5 raddr_a=B_CUR_RA raddr_b=B_STRIDE_K_RB add_a=ra add_b=ra mul_a=rb mul_b=rb
 
 			; K_RA = K_RA - 1 (= K_RA - TMP1_R)
 			;  and set the z flag on the new K_RA
@@ -228,27 +226,28 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 			alu sig=ldtmu0 sf=1 cond_add=al op_add=sub waddr_add=K_RA raddr_a=K_RA add_a=ra add_b=TMP1_R
 
 			; Do calculations
-			alu                  cond_mul=al                        waddr_mul=TMP0_R             op_mul=fmul                      raddr_b=uniform_read                       mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_0_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_0_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_1_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_1_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_2_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_2_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_3_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_3_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_4_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_4_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_5_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_5_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_6_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_6_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_7_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_7_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_8_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_8_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_9_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_9_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_10_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_10_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_11_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_11_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_12_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_12_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			;  and B_CUR_RA += B_STRIDE_K_RB (+= r5)
+			alu cond_add=al cond_mul=al waddr_add=B_CUR_RA     waddr_mul=TMP0_R op_add=add  op_mul=fmul raddr_a=B_CUR_RA     raddr_b=uniform_read add_a=ra add_b=r5     mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_0_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_0_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_1_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_1_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_2_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_2_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_3_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_3_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_4_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_4_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_5_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_5_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_6_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_6_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_7_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_7_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_8_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_8_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_9_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_9_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_10_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_10_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_11_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_11_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+			alu cond_add=al cond_mul=al waddr_add=RESULT_12_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_12_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
 
 			; Loop if K_RA is not 0
 			bra cond_br=anyzc rel=1 imm=`:loop-k`
 			; 3 delay slots {
-				alu      cond_add=al cond_mul=al waddr_add=RESULT_13_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_13_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-				alu      cond_add=al cond_mul=al waddr_add=RESULT_14_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_14_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-				alu      cond_add=al             waddr_add=RESULT_15_RA                  op_add=fadd             raddr_a=RESULT_15_RA                      add_a=ra add_b=TMP0_R
+				alu cond_add=al cond_mul=al waddr_add=RESULT_13_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_13_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+				alu cond_add=al cond_mul=al waddr_add=RESULT_14_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_14_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+				alu cond_add=al             waddr_add=RESULT_15_RA                  op_add=fadd             raddr_a=RESULT_15_RA                      add_a=ra add_b=TMP0_R
 			; }
 
 		alu cond_mul=al op_mul=fmul waddr_mul=RESULT_0_RA  ws=1 raddr_a=RESULT_0_RA  raddr_b=ALPHA_RB mul_a=ra mul_b=rb
