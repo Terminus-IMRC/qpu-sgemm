@@ -208,22 +208,30 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 		li cond_add=al waddr_add=RESULT_15_RA imm=`0`
 
 
-		; K_RA = Q_RA - 1
-		alu cond_add=al waddr_add=K_RA op_add=sub raddr_a=Q_RA sig=simm simm=1 add_a=ra add_b=rb
+		; K_RA = Q_RA
+		;  and TMP1_R = 1
+		alu cond_add=al cond_mul=al waddr_add=K_RA waddr_mul=TMP1_R op_add=or op_mul=v8min raddr_a=Q_RA sig=simm simm=1 add_a=ra add_b=ra mul_a=rb mul_b=rb
 
 		:loop-k ; (Q - 1) to 0
 
 			; tmu0s = A_CUR_RA
-			alu cond_add=al op_add=or waddr_add=tmu0s raddr_a=A_CUR_RA add_a=ra add_b=ra
+			;  and A_CUR_RA += A_STRIDE_K_RB
+			alu cond_add=al cond_mul=al op_add=add op_mul=v8min waddr_add=A_CUR_RA waddr_mul=tmu0s raddr_a=A_CUR_RA raddr_b=A_STRIDE_K_RB add_a=ra add_b=rb mul_a=ra mul_b=ra
+
 			; uniforms_address = B_CUR_RA
+			; Note: Because it seems that uniforms_address is not on reg B, we cannot update B_CUR_RA here.
+			alu cond_add=al op_add=or waddr_add=uniforms_address raddr_a=B_CUR_RA add_a=ra add_b=ra
+
+			; B_CUR_RA += B_STRIDE_K_RB
+			alu cond_add=al op_add=add waddr_add=B_CUR_RA raddr_a=B_CUR_RA raddr_b=B_STRIDE_K_RB add_a=ra add_b=rb
+
+			; K_RA = K_RA - 1 (= K_RA - TMP1_R)
+			;  and set the z flag on the new K_RA
 			;  and r4 = tmu0
-			alu sig=ldtmu0 cond_add=al op_add=or waddr_add=uniforms_address raddr_a=B_CUR_RA add_a=ra add_b=ra
-			alu
-			alu
+			alu sig=ldtmu0 sf=1 cond_add=al op_add=sub waddr_add=K_RA raddr_a=K_RA add_a=ra add_b=TMP1_R
 
 			; Do calculations
-			;  and set the z flag on K_RA
-			alu sf=1 cond_add=al cond_mul=al                        waddr_mul=TMP0_R op_add=add  op_mul=fmul raddr_a=K_RA         raddr_b=uniform_read add_a=ra add_b=ra     mul_a=r4 mul_b=rb
+			alu                  cond_mul=al                        waddr_mul=TMP0_R             op_mul=fmul                      raddr_b=uniform_read                       mul_a=r4 mul_b=rb
 			alu      cond_add=al cond_mul=al waddr_add=RESULT_0_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_0_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
 			alu      cond_add=al cond_mul=al waddr_add=RESULT_1_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_1_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
 			alu      cond_add=al cond_mul=al waddr_add=RESULT_2_RA  waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_2_RA  raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
@@ -237,21 +245,13 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 			alu      cond_add=al cond_mul=al waddr_add=RESULT_10_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_10_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
 			alu      cond_add=al cond_mul=al waddr_add=RESULT_11_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_11_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
 			alu      cond_add=al cond_mul=al waddr_add=RESULT_12_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_12_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_13_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_13_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al cond_mul=al waddr_add=RESULT_14_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_14_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
-			alu      cond_add=al             waddr_add=RESULT_15_RA                  op_add=fadd             raddr_a=RESULT_15_RA                      add_a=ra add_b=TMP0_R
 
 			; Loop if K_RA is not 0
 			bra cond_br=anyzc rel=1 imm=`:loop-k`
 			; 3 delay slots {
-				; A_CUR_RA += A_STRIDE_K_RB
-				alu cond_add=al op_add=add waddr_add=A_CUR_RA raddr_a=A_CUR_RA raddr_b=A_STRIDE_K_RB add_a=ra add_b=rb
-
-				; B_CUR_RA += B_STRIDE_K_RB
-				alu cond_add=al op_add=add waddr_add=B_CUR_RA raddr_a=B_CUR_RA raddr_b=B_STRIDE_K_RB add_a=ra add_b=rb
-
-				; K_RA = K_RA - 1
-				alu cond_add=al op_add=sub waddr_add=K_RA raddr_a=K_RA sig=simm simm=`1` add_a=ra add_b=rb
+				alu      cond_add=al cond_mul=al waddr_add=RESULT_13_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_13_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+				alu      cond_add=al cond_mul=al waddr_add=RESULT_14_RA waddr_mul=TMP0_R op_add=fadd op_mul=fmul raddr_a=RESULT_14_RA raddr_b=uniform_read add_a=ra add_b=TMP0_R mul_a=r4 mul_b=rb
+				alu      cond_add=al             waddr_add=RESULT_15_RA                  op_add=fadd             raddr_a=RESULT_15_RA                      add_a=ra add_b=TMP0_R
 			; }
 
 		alu cond_mul=al op_mul=fmul waddr_mul=RESULT_0_RA  ws=1 raddr_a=RESULT_0_RA  raddr_b=ALPHA_RB mul_a=ra mul_b=rb
@@ -273,8 +273,6 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 
 		; Read vpm_ld_wait
 		;  and TMP1_R = BETA_RB
-		;alu cond_add=al op_add=or waddr_add=TMP1_R raddr_b=BETA_RB add_a=rb add_b=rb
-		;alu cond_add=al op_add=or raddr_a=vpm_ld_wait add_a=ra add_b=ra
 		alu cond_add=al cond_mul=al op_add=or op_mul=v8min waddr_mul=TMP1_R raddr_a=vpm_ld_wait raddr_b=BETA_RB add_a=ra add_b=ra mul_a=rb mul_b=rb
 
 		;                                                + VPM read setup
