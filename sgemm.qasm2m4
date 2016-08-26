@@ -338,10 +338,10 @@ alu cond_add=al waddr_add=I_RA op_add=sub raddr_a=Pd16_RA sig=simm simm=1 add_a=
 		alu cond_add=al op_add=add waddr_add=C_CUR_RA raddr_a=C_CUR_BACK_I_RA raddr_b=C_STRIDE_I_RB add_a=ra add_b=rb
 
 		; I_RA = I_RA - 1
-		alu sf=1 cond_add=al op_add=sub waddr_add=I_RA raddr_a=I_RA sig=simm simm=`1` add_a=ra add_b=rb
+		;  and trigger an interrupt if I_RA is 0
+		alu sf=1 cond_add=al cond_mul=zs op_add=sub op_mul=v8min waddr_add=I_RA waddr_mul=host_int raddr_a=I_RA sig=simm simm=`1` add_a=ra add_b=rb mul_a=rb mul_b=rb
 	; }
 
-li cond_add=al waddr_add=host_int imm=`1`
 alu sig=pe
 alu
 alu
